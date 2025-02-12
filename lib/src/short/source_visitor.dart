@@ -354,8 +354,8 @@ final class SourceVisitor extends ThrowingAstVisitor {
       token(node.rightBracket);
       return;
     }
-
-    _visitBody(node.leftBracket, node.statements, node.rightBracket);
+    _visitBody(node.leftBracket, node.statements, node.rightBracket,
+        allowOneLineBlock: node.parent is BlockFunctionBody);
   }
 
   @override
@@ -3854,7 +3854,8 @@ final class SourceVisitor extends ThrowingAstVisitor {
   }
 
   /// Writes the brace-delimited body containing [nodes].
-  void _visitBody(Token leftBracket, List<AstNode> nodes, Token rightBracket) {
+  void _visitBody(Token leftBracket, List<AstNode> nodes, Token rightBracket,
+      {bool allowOneLineBlock = false}) {
     // Don't allow splitting in an empty body.
     if (!nodes.canSplit(rightBracket)) {
       token(leftBracket);
@@ -3862,9 +3863,11 @@ final class SourceVisitor extends ThrowingAstVisitor {
       return;
     }
 
-    _beginBody(leftBracket);
+    var oneStatementFunctionBody = allowOneLineBlock && nodes.length == 1;
+    _beginBody(leftBracket, space: true);
     _visitBodyContents(nodes);
-    _endBody(rightBracket, forceSplit: nodes.isNotEmpty);
+    _endBody(rightBracket,
+        forceSplit: nodes.isNotEmpty && !oneStatementFunctionBody);
   }
 
   static final _lineTerminatorRE = RegExp(r'\r\n?|\n');
